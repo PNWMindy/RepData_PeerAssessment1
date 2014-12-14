@@ -20,11 +20,6 @@ output:
   ## read the data
   df <- read.csv("activity.csv")
 
-  ## Make a figure folder, if one doesn't exist  
-  if (!file.exists("figure")) {
-    dir.create("figure")
-  }
-
 #2. Process/transform the data (if necessary) into a format suitable for your analysis
 # just look at the data, no transformation needed
 summary(df)
@@ -80,26 +75,6 @@ hist(dfStepsPerDay$x, xlab="Steps Per Day", main="Frequency of Steps Per Day")
 ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
 
 ```r
-## copy to PNG file format with size 480x480 pixels  
-dev.copy(png, file = "./figure/figure1.png", height=480, width=480) 
-```
-
-```
-## png 
-##   3
-```
-
-```r
-## close the PNG device
-dev.off()
-```
-
-```
-## pdf 
-##   2
-```
-
-```r
 #2. Calculate and report the **mean** and **median** total number of steps taken per day
 mean(dfStepsPerDay$x, na.rm=TRUE)
 ```
@@ -124,26 +99,6 @@ plot(dfStepsPerInterval, type="l", xlab="5-Min Interval", ylab="Steps", main="Av
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
-
-```r
-## copy to PNG file format with size 480x480 pixels  
-dev.copy(png, file = "./figure/figure2.png", height=480, width=480) 
-```
-
-```
-## png 
-##   3
-```
-
-```r
-## close the PNG device
-dev.off()
-```
-
-```
-## pdf 
-##   2
-```
 
 ```r
 #2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
@@ -3538,26 +3493,6 @@ hist(dfStepsPerDayNoMissing$x, xlab="Steps Per Day", main="Frequency of Steps Pe
 ![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 ```r
-## copy to PNG file format with size 480x480 pixels  
-dev.copy(png, file = "./figure/figure3.png", height=480, width=480) 
-```
-
-```
-## png 
-##   3
-```
-
-```r
-## close the PNG device
-dev.off()
-```
-
-```
-## pdf 
-##   2
-```
-
-```r
 #Calculate and report the **mean** and **median** total number of steps taken per day. 
 mean(dfStepsPerDayNoMissing$x, na.rm=TRUE)
 ```
@@ -3596,23 +3531,3 @@ xyplot(x ~ Group.1 | Group.2, data = dfStepsPerIntervalDayType, layout=c(1,2), x
 ```
 
 ![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
-
-```r
-## copy to PNG file format with size 480x480 pixels  
-dev.copy(png, file = "./figure/figure4.png", height=480, width=480) 
-```
-
-```
-## png 
-##   3
-```
-
-```r
-## close the PNG device
-dev.off() 
-```
-
-```
-## pdf 
-##   2
-```
