@@ -8,18 +8,118 @@ output:
 
 ## Loading and preprocessing the data
 
+```{r echo=TRUE}
+#Show any code that is needed to
+#1. Load the data (i.e. `read.csv()`)
+  ## Check if the unzip file exists
+  if (!file.exists("activity.csv")) {
+    ## unzip the files
+    unzip("./activity.zip")
+  }
+  ## read the data
+  df <- read.csv("activity.csv")
 
+  ## Make a figure folder, if one doesn't exist  
+  if (!file.exists("figure")) {
+    dir.create("figure")
+  }
 
+#2. Process/transform the data (if necessary) into a format suitable for your analysis
+# just look at the data, no transformation needed
+summary(df)
+head(df)
+tail(df)
+```
 ## What is mean total number of steps taken per day?
+```{r echo=TRUE}
+#For this part of the assignment, you can ignore the missing values in the dataset.
+#1. Make a histogram of the total number of steps taken each day
+dfStepsPerDay <- aggregate(df$steps, by=list(df$date), FUN=sum, na.rm=FALSE)
+hist(dfStepsPerDay$x, xlab="Steps Per Day", main="Frequency of Steps Per Day")
+## copy to PNG file format with size 480x480 pixels  
+dev.copy(png, file = "./figure/figure1.png", height=480, width=480) 
+## close the PNG device
+dev.off()
 
+#2. Calculate and report the **mean** and **median** total number of steps taken per day
+mean(dfStepsPerDay$x, na.rm=TRUE)
+median(dfStepsPerDay$x, na.rm=TRUE)
 
-
+```
 ## What is the average daily activity pattern?
+```{r echo=TRUE}
+#1. Make a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+dfStepsPerInterval <- aggregate(df$steps, by=list(df$interval), FUN=mean, na.rm=TRUE)
+plot(dfStepsPerInterval, type="l", xlab="5-Min Interval", ylab="Steps", main="Avg Steps Per Interval")
+## copy to PNG file format with size 480x480 pixels  
+dev.copy(png, file = "./figure/figure2.png", height=480, width=480) 
+## close the PNG device
+dev.off()
 
-
-
+#2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+dfMax <- subset(dfStepsPerInterval, x == max(dfStepsPerInterval$x))
+dfMax$Group.1
+```
 ## Imputing missing values
+```{r echo=TRUE}
+#Note that there are a number of days/intervals where there are missing
+#values (coded as `NA`). The presence of missing days may introduce
+#bias into some calculations or summaries of the data.
 
+#1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with `NA`s)
+length(which(is.na(df$steps)==T))
 
+#2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+## My Strategy:  use the mean for that 5-minute interval to fill the missing data
 
+#3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+# create a dataframe for the missing numbers
+dfMissing <- subset(df, is.na(df$steps))
+# merge the missing dataframe with the avg steps per interval dataframe previously created
+dfMergedMissing <- merge(dfMissing, dfStepsPerInterval, by.x="interval", by.y="Group.1")
+# remove the column with NA - steps
+dfMergedMissing <- subset(dfMergedMissing, select=c("x", "date", "interval"))
+# merge the updated missing data with the original dataframe
+dfNoMissing <- merge(df, dfMergedMissing, by.x=c("interval","date"), by.y=c("interval","date"), all.x=TRUE)
+# update steps to the value of x where it is NA
+dfNoMissing$steps[is.na(dfNoMissing$steps)] <- dfNoMissing$x[is.na(dfNoMissing$steps)]
+# drop the x column
+dfNoMissing <- subset(dfNoMissing, select=c("steps", "date", "interval"))
+# order by date and then by interval
+dfNoMissing <- dfNoMissing[with(dfNoMissing, order(date, interval)), ]
+dfNoMissing
+
+#4. Make a histogram of the total number of steps taken each day and 
+dfStepsPerDayNoMissing <- aggregate(dfNoMissing$steps, by=list(dfNoMissing$date), FUN=sum, na.rm=FALSE)
+hist(dfStepsPerDayNoMissing$x, xlab="Steps Per Day", main="Frequency of Steps Per Day")
+## copy to PNG file format with size 480x480 pixels  
+dev.copy(png, file = "./figure/figure3.png", height=480, width=480) 
+## close the PNG device
+dev.off()
+
+#Calculate and report the **mean** and **median** total number of steps taken per day. 
+mean(dfStepsPerDayNoMissing$x, na.rm=TRUE)
+median(dfStepsPerDayNoMissing$x, na.rm=TRUE)
+
+#Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+# A: The mean is the same, but the median changed from 10765 to 10766.19
+```
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r echo=TRUE}
+#For this part the `weekdays()` function may be of some help here. Use
+#the dataset with the filled-in missing values for this part.
+
+#1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
+dfNoMissing$DayType <- factor(ifelse(weekdays(as.Date(dfNoMissing$date))=="Sunday", "weekend", ifelse(weekdays(as.Date(dfNoMissing$date))=="Saturday", "weekend", "weekday")))
+
+#1. Make a panel plot containing a time series plot (i.e. `type = "l"`) of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+dfStepsPerIntervalDayType <- aggregate(dfNoMissing$steps, by=list(dfNoMissing$interval, dfNoMissing$DayType), FUN=mean, na.rm=TRUE)
+
+library(lattice)
+xyplot(x ~ Group.1 | Group.2, data = dfStepsPerIntervalDayType, layout=c(1,2), xlab="Interval", ylab="Number of Steps", type="l")
+## copy to PNG file format with size 480x480 pixels  
+dev.copy(png, file = "./figure/figure4.png", height=480, width=480) 
+## close the PNG device
+dev.off() 
+```
